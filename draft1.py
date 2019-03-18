@@ -181,53 +181,9 @@ def phase2():
     model2.predict(new_x_test)
     print("\nFinal test score: ", model2.score(new_x_test, new_y_test))
   
-
-SVM_phase1()
-phase2()
-    
-
-
-
-#    def phase2():
-#    sample, sample_label, new_x_test, new_y_test = random_sampling(60)
-#    A = [list(i) for i in x_test]
-#    a = list(y_test) 
-#    dic = {}
-#    for i in range(len(x_test_l)):
-#        dic[str(x_test_l[i])] = y_test_l[i]
-#        
-#    sample_index = random.sample([i for i in range(len(x_test_l))], 100)
-#    sample = []
-#    for i in sample_index:
-#        sample.append(x_test_l[i])
-#    
-#    for s in sample:
-#        x_test_l.remove(s)
-#    sample_index.sort()
-#    k = 0
-#    for i in sample_index:
-#        del y_test_l[i-k]
-#        k += 1
-#        
-#    x_test1 = np.array(x_test_l)
-#    y_test1 = np.array(y_test_l)
-    
-#    sample_label = [10]*100
-#    
-#    sample = np.array(sample)
-#    sample_lable = np.array(sample_label)
-#    
-#    classes = np.concatenate((x_train, sample), axis=0)
-#    classes_label = np.append(y_train, sample_label)
-#    
-#    # start cross validation
-#    model = SVC(C=1.0, cache_size=200, class_weight=None, coef0=0.0,             # confusion matrix
-#                decision_function_shape='ovr', degree=3, gamma='auto',           # use probabilistic classifier
-#                kernel='rbf', max_iter=-1, probability=False, random_state=None,
-#                shrinking=True, tol=0.001, verbose=False)
-#    model.fit(classes, classes_label)
-#    scores = cross_val_score(model, classes, classes_label, cv=11)
-#    print("Cross validation scores: ", scores)
-
-
+def main():
+    SVM_phase1()
+    phase2()
+            
+main()
     
