@@ -74,7 +74,7 @@ def make_data():
     return x_train, x_test, y_train, y_test
 
 '''------------------- phase 1 -------------------------
-In this phase, we will train the classifier (here we pick SVM) on the 10 known classes
+In this phase, we will train the classifier (here we pick KNN) on the 10 known classes
 and test its performance on the 10+1 test classes.
 This phase serves as the control group of our experiment.
 '''
