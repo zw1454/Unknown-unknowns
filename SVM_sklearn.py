@@ -324,4 +324,4 @@ def SVM_sample_size_test():
     pyplot.legend(['std=1.5', 'std=2.5', 'std=3.5', 'Benchmark'])
     pyplot.show()
 
-    
+     
