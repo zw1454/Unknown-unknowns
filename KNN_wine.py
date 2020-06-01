@@ -215,7 +215,7 @@ def KNN_main(sample_size):
     KNN_phase1(x_train, x_test, y_train, y_test)
     score2 = KNN_phase2(sample_size, x_train, x_test, y_train, y_test)
     return score2
-    
+     
 ###########################################################
     
 KNN_main(20)
