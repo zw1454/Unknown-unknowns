@@ -228,6 +228,6 @@ def CNN_main(sample_size):
 
  
 ####################################
-CNN_main(0.3)
+CNN_main(0.3) 
 
 
