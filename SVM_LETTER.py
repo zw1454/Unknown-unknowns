@@ -19,11 +19,6 @@ import pandas as pd
 uu_label = []
 uu_label_test = 99
 
-'''------------------ make data ------------------------ 
-In this part, we generate our data and perform
-a multidimensional scaling (MDS) to visualize the class separability.
-Then we split our generated data into test/training sets.
-'''
 
 def make_data():
     
@@ -81,10 +76,6 @@ def make_data():
     
     return x_train, x_test, y_train, y_test
 
-'''------------------- phase 1 -------------------------
-In this phase, we will train the classifier (here we pick SVM) on the 10 known classes
-and test its performance on the test classes.
-'''
 
 def SVM_phase1(x_train, x_test, y_train, y_test):    
     model = SVC(C=1.0, cache_size=200, class_weight=None, coef0=0.0,
@@ -105,14 +96,6 @@ def SVM_phase1(x_train, x_test, y_train, y_test):
     return (score1, f_measure)
     
     
-    
-'''------------------- phase 2 ------------------------
-In this phase, we will: first, random sample from the test set and add it as a new
-class to the existing training set; second, perform a cross validation on the training
-set and sort out all the data assigned to the new sample class; third, retrain the classifer
-on the new training set and evaluate its performance on the test set.
-'''
-
 def random_sampling(n, x_train, x_test, y_train, y_test):      
     # n: number of samples from the test set
     A = [list(i) for i in x_test]
