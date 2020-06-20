@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+ #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 @author: Wang, Zheng (zw1454@nyu.edu)
@@ -20,6 +20,12 @@ def uu_between_class_scatter_matrix(known_mean_list, unknown_mean):
         scatter_mat += np.matmul(mu_i.T, mu_i)
     
     return scatter_mat / (known_mean_list.shape[0] + 1)
+
+
+def uu_mixture_scatter_matrix(known_mean_list, uu_known_mean, uu_cov_mat):
+    S_b = uu_between_class_scatter_matrix(known_mean_list, uu_known_mean)
+    
+    return S_b + uu_cov_mat
 
 
 def make_data(uu_mean, uu_cov):
@@ -44,8 +50,11 @@ def make_data(uu_mean, uu_cov):
     known_mean_l = np.asarray(known_mean_l)
     uu_mean = np.asarray(uu_mean)
     
-    trace_of_scatter_matrix = np.trace(uu_between_class_scatter_matrix(known_mean_l, uu_mean))
-    print('\nTrace of scatter matrix: ', trace_of_scatter_matrix)
+    trace_of_distance_scatter_matrix = np.trace(uu_between_class_scatter_matrix(known_mean_l, uu_mean))
+    trace_of_mixture_scatter_matrix = np.trace(uu_mixture_scatter_matrix(known_mean_l, uu_mean, uu_cov))
+    trace_of_cov_matrix = np.trace(uu_cov)
+    print('\nTrace of between-class scatter matrix: ', trace_of_distance_scatter_matrix)
+    print('Trace of mixture scatter matrix: ', trace_of_mixture_scatter_matrix)
     ################
     
     # construct the 10 known classes
@@ -86,14 +95,15 @@ def make_data(uu_mean, uu_cov):
     print("Shape of the original training data: ", x_train.shape)
     print("Shape of the original test data: ", x_test.shape)
     
-    plt.figure(1)
-    plt.scatter(all_x[:,0], all_x[:,1], c=all_y)
-    plt.xlim((-10, 10))
-    plt.ylim((-10, 10))
-    plt.title("The structure of the 10+uu classes")
-    plt.show()  # Note that the color of the unknown unknown class is yellow
+#    plt.figure(1)
+#    plt.scatter(all_x[:,0], all_x[:,1], c=all_y)
+#    plt.xlim((-10, 10))
+#    plt.ylim((-10, 10))
+#    plt.title("The structure of the 10+uu classes")
+#    plt.show()  # Note that the color of the unknown unknown class is yellow
     
-    return x_train, x_test, y_train, y_test, trace_of_scatter_matrix
+    return x_train, x_test, y_train, y_test, \
+        trace_of_cov_matrix, trace_of_mixture_scatter_matrix, trace_of_distance_scatter_matrix
 
 
 def SVM_phase1(x_train, x_test, y_train, y_test):    
@@ -129,7 +139,7 @@ def random_sampling(n, x_train, x_test, y_train, y_test):
     return sample, sample_label, new_x_test, new_y_test
 
 
-def cross_validation(X, Y, k=10):
+def cross_validation(X, Y, k):
     # divide the training data into k-folds
     kf = KFold(n_splits=k)
     unknown = []
@@ -160,7 +170,7 @@ def cross_validation(X, Y, k=10):
     return unknown, unknown_label
 
     
-def SVM_phase2(sample_size, x_train, x_test, y_train, y_test):
+def SVM_phase2(sample_size, x_train, x_test, y_train, y_test, k):
     sample, sample_label, new_x_test, new_y_test \
             = random_sampling(sample_size, x_train, x_test, y_train, y_test)
             
@@ -177,7 +187,7 @@ def SVM_phase2(sample_size, x_train, x_test, y_train, y_test):
     classes = np.array(classes)
     classes_label = np.array(classes_label)
     
-    un_class, un_label = cross_validation(classes, classes_label, k=10)
+    un_class, un_label = cross_validation(classes, classes_label, k)
     
     # construct the final training set by adding the unknown unknowns
     if un_class.shape[0] != 0:
@@ -203,11 +213,11 @@ def SVM_phase2(sample_size, x_train, x_test, y_train, y_test):
     return score2
 
 
-def SVM_main(uu_mean, uu_cov, sample_size=60):
-    x_train, x_test, y_train, y_test, trace_scatter_mat = make_data(uu_mean, uu_cov)
+def SVM_main(uu_mean, uu_cov, sample_size=60, k=10):
+    x_train, x_test, y_train, y_test, trace1, trace2, trace3 = make_data(uu_mean, uu_cov)
     SVM_phase1(x_train, x_test, y_train, y_test)
-    score2 = SVM_phase2(sample_size, x_train, x_test, y_train, y_test)
-    return score2, trace_scatter_mat
+    score2 = SVM_phase2(sample_size, x_train, x_test, y_train, y_test, k)
+    return score2, trace1, trace2, trace3
 
 
 '''-------------------------------------------------------------------------'''
@@ -221,23 +231,62 @@ def uu_distance_test():
     
     for i in range(loc_on_x_axis.shape[0]):
         uu_mean_i = [loc_on_x_axis[i], 0]
-        final_accu_i, trace_i = SVM_main(uu_mean_i, uu_cov)
+        final_accu_i, _, _, trace_i = SVM_main(uu_mean_i, uu_cov)
         trace_l.append(trace_i)
         final_accu_l.append(final_accu_i)
         
     plt.figure(2)
     plt.scatter(trace_l, final_accu_l, marker='x', c='red')
     plt.hlines(0.66, 35, 150)
-    plt.xlabel('Trace of between class scatter matrix')
+    plt.xlabel('Trace of between-class scatter matrix')
     plt.ylabel('F-measure')
-    plt.legend(['RSTCV+SVM', 'Benchmark'], loc=7)
+    plt.legend(['RTSCV+SVM', 'Benchmark'], loc=7)
     plt.savefig('uu_distance_separability.pdf')
     
     
-SVM_main([-10, 0], [[1.5, 0], [0, 1.5]]) 
-SVM_main([-4, 0], [[1.5, 0], [0, 1.5]]) 
-SVM_main([4, 0], [[1.5, 0], [0, 1.5]]) 
+def uu_cov_test():
+    uu_mean = [-4, 0]
+    uu_cov_l = np.linspace(0, 20, 40)
+    
+    trace_l = []
+    final_accu_l = []
+    
+    for i in range(uu_cov_l.shape[0]):
+        uu_cov_i = np.eye(2) * uu_cov_l[i]
+        final_accu_i, trace_i, _, _ = SVM_main(uu_mean, uu_cov_i)
+        trace_l.append(trace_i)
+        final_accu_l.append(final_accu_i)
+        
+    plt.figure(3)
+    plt.scatter(trace_l, final_accu_l, marker='x', c='red')
+    plt.hlines(0.66, 59, 100)
+    plt.xlabel('Trace of mixture scatter matrix')
+    plt.ylabel('F-measure')
+    plt.legend(['RTSCV+SVM', 'Benchmark'])
+    plt.savefig('uu_cov_separability.pdf')
+    
 
+def uu_J1_test():
+    loc_on_x_axis = np.linspace(-10, 10, 20)
+    uu_cov_l = np.array([1, 2, 4, 8, 16])
+    
+    plt.figure(5)
+    marker = ['.', '1', '*', 'x', '4']
+    for j in range(uu_cov_l.shape[0]):
+        J1_l = []
+        final_accu_l = []
+        for i in range(loc_on_x_axis.shape[0]):
+            uu_mean = [loc_on_x_axis[i], 0]
+            uu_cov = np.eye(2) * uu_cov_l[j]
+            final_accu, trace1, trace2, _ = SVM_main(uu_mean, uu_cov)
+            J1_l.append(trace2/trace1)
+            final_accu_l.append(final_accu)
+        plt.scatter(J1_l, final_accu_l, marker=marker[j])
+        
+    plt.hlines(0.66, 0, 80)
+    plt.xlabel('J1 score')
+    plt.ylabel('F-measure')
+    plt.legend(['cov=1', 'cov=2', 'cov=4', 'cov=8', 'cov=16', 'benchmark'])
+    plt.savefig('uu_distance_separability.pdf')
     
     
-
