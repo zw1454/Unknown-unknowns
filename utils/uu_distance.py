@@ -126,18 +126,8 @@ def random_sampling(n, x_train, x_test, y_train, y_test):
     newA_l, newa_l = list(newA), list(newa)
     sample, sample_label = np.array(newA_l), np.array(newa_l) # obtain a sample of test set
     
-    new_x_test = []
-    new_y_test = []
-    for i in range(len(A)):
-        if A[i] not in sample:
-            new_x_test.append(A[i])
-            new_y_test.append(a[i]) # reconstruct the test set by removing the samples
-            
-    new_x_test = np.array(new_x_test)
-    new_y_test = np.array(new_y_test)
-    
-    return sample, sample_label, new_x_test, new_y_test
-
+    return sample, sample_label, x_test, y_test
+   
 
 def cross_validation(X, Y, k):
     # divide the training data into k-folds
